@@ -45,6 +45,7 @@ test('stato completo per il back office e provvigioni demo', async () => {
   assert.equal(r.status, 200);
   assert.equal(r.json.segnalatori.length, 6);
   assert.equal(r.json.opportunita.length, 12);
+  assert.ok(r.json.opportunita.every(o => o.luogo), 'le opportunità demo hanno il luogo');
   assert.ok(r.json.eventi.length > 30);
   assert.equal(Object.keys(r.json.liquidazioni).length, 2);
 });
@@ -71,6 +72,14 @@ test('permessi: il segnalatore non può fare operazioni riservate', async () => 
   assert.equal((await seg('POST', '/api/segnalatori', { nome: 'X', tipologiaId: 'broker' })).status, 403);
   assert.equal((await seg('PUT', '/api/opportunita/o1', { clienteId: 'c1', titolo: 'x', tipologiaId: 'nuovo' })).status, 403);
   assert.equal((await seg('GET', '/api/utenti')).status, 403);
+  // tipologie ed eventi di follow-up: gestione riservata all'azienda
+  assert.equal((await seg('POST', '/api/tipologie/opportunita', { id: 'x', nome: 'X' })).status, 403);
+  assert.equal((await seg('PUT', '/api/tipologie/segnalatore/broker', { nome: 'X' })).status, 403);
+  assert.equal((await seg('DELETE', '/api/tipologie/opportunita/nuovo')).status, 403);
+  const evO1 = (await seg('GET', '/api/state')).json.eventi.find(e => e.opportunitaId === 'o1' && e.tipo !== 'segnalazione');
+  assert.equal((await seg('DELETE', '/api/eventi/' + evO1.id)).status, 403);
+  assert.equal((await seg('POST', '/api/liquidazioni', { eventoIds: [evO1.id] })).status, 403);
+  assert.equal((await seg('DELETE', '/api/opportunita/o1')).status, 403);
   // cliente di un altro segnalatore: non visibile né modificabile
   assert.equal((await seg('PUT', '/api/clienti/c2', { ragioneSociale: 'Hack', segnalatoreId: 's1' })).status, 404);
   // opportunità su cliente altrui
@@ -88,10 +97,15 @@ test('segnalatore: nuovo cliente con controllo duplicati e nuova segnalazione', 
   const st = (await seg('GET', '/api/state')).json;
   assert.equal(st.clienti.find(c => c.id === cid).segnalatoreId, 's1', 'il cliente va nel portafoglio di chi lo inserisce');
   r = await seg('POST', '/api/opportunita', { clienteId: cid, segnalatoreId: 's2', tipologiaId: 'usato', titolo: 'Nuova segnalazione', valoreStimato: 1000, dataSegnalazione: '2026-09-20' });
+  assert.equal(r.status, 403, 'il segnalatore non può segnalare per altri');
+  r = await seg('POST', '/api/clienti', { ragioneSociale: 'Cliente per altri', segnalatoreId: 's2' });
+  assert.equal(r.status, 403, 'il segnalatore non può inserire clienti per altri');
+  r = await seg('POST', '/api/opportunita', { clienteId: cid, segnalatoreId: 's1', tipologiaId: 'usato', titolo: 'Nuova segnalazione', luogo: '  Marina di Lavagna, pontile 3 ', valoreStimato: 1000, dataSegnalazione: '2026-09-20' });
   assert.equal(r.status, 200);
   const st2 = (await seg('GET', '/api/state')).json;
   const o = st2.opportunita.find(x => x.id === r.json.id);
-  assert.equal(o.segnalatoreId, 's1', 'il segnalatore non può assegnare ad altri');
+  assert.equal(o.segnalatoreId, 's1');
+  assert.equal(o.luogo, 'Marina di Lavagna, pontile 3');
   assert.equal(st2.eventi.filter(e => e.opportunitaId === o.id && e.tipo === 'segnalazione').length, 1);
 });
 

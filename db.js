@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS clienti (
   dataInserimento TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '');
 CREATE TABLE IF NOT EXISTS opportunita (
   id TEXT PRIMARY KEY, clienteId TEXT NOT NULL REFERENCES clienti(id), segnalatoreId TEXT NOT NULL REFERENCES segnalatori(id),
-  tipologiaId TEXT NOT NULL REFERENCES tipologieOpportunita(id), titolo TEXT NOT NULL, descr TEXT NOT NULL DEFAULT '',
+  tipologiaId TEXT NOT NULL REFERENCES tipologieOpportunita(id), titolo TEXT NOT NULL, luogo TEXT NOT NULL DEFAULT '', descr TEXT NOT NULL DEFAULT '',
   valoreStimato REAL NOT NULL DEFAULT 0, dataSegnalazione TEXT NOT NULL DEFAULT '');
 CREATE TABLE IF NOT EXISTS eventi (
   id TEXT PRIMARY KEY, opportunitaId TEXT NOT NULL REFERENCES opportunita(id) ON DELETE CASCADE,
@@ -50,8 +50,11 @@ CREATE TABLE IF NOT EXISTS sessions (
   createdAt TEXT NOT NULL, expiresAt TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS ix_sessions_user ON sessions(userId);
 `);
+// Migrazioni leggere per database creati con versioni precedenti.
+const hasCol = (table, col) => db.prepare(`PRAGMA table_info(${table})`).all().some(c => c.name === col);
+if (!hasCol('opportunita', 'luogo')) db.exec("ALTER TABLE opportunita ADD COLUMN luogo TEXT NOT NULL DEFAULT ''");
 
-const uid = () => crypto.randomBytes(6).toString('hex');
+const uid =() => crypto.randomBytes(6).toString('hex');
 const now = () => new Date().toISOString();
 
 /* ---- password (scrypt, nessuna dipendenza) ---- */

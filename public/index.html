@@ -429,7 +429,7 @@ function vSegnalatore(id){
 function tabellaOpportunita(list,{hideSeg}={}){
   if(!list.length) return '<div class="empty">Nessuna opportunità</div>';
   return `<table><thead><tr><th>Data</th><th>Opportunità</th><th>Cliente</th>${hideSeg?'':'<th>Segnalatore</th>'}<th>Tipologia</th><th class="num">Valore</th><th>Stato</th><th>Ultimo evento</th></tr></thead><tbody>
-  ${list.map(o=>{const u=oppUltimoEvento(o); return `<tr class="clickable" onclick="location.hash='#/opportunita/${o.id}'"><td class="small muted" style="white-space:nowrap">${dt(o.dataSegnalazione)}</td><td><b>${esc(o.titolo)}</b></td><td>${esc(nomeCli(o.clienteId))}</td>${hideSeg?'':`<td>${who(o.segnalatoreId,'sm')}</td>`}<td class="small">${esc(tOpp(o.tipologiaId)?.nome||'')}</td><td class="num">${eur(oppValore(o))}</td><td>${badgeStato(o)}</td><td class="small muted">${u?`${dt(u.data)} · ${ET[u.tipo].label}`:''}</td></tr>`;}).join('')}</tbody></table>`;
+  ${list.map(o=>{const u=oppUltimoEvento(o); return `<tr class="clickable" onclick="location.hash='#/opportunita/${o.id}'"><td class="small muted" style="white-space:nowrap">${dt(o.dataSegnalazione)}</td><td><b>${esc(o.titolo)}</b>${o.luogo?`<div class="small muted">${esc(o.luogo)}</div>`:''}</td><td>${esc(nomeCli(o.clienteId))}</td>${hideSeg?'':`<td>${who(o.segnalatoreId,'sm')}</td>`}<td class="small">${esc(tOpp(o.tipologiaId)?.nome||'')}</td><td class="num">${eur(oppValore(o))}</td><td>${badgeStato(o)}</td><td class="small muted">${u?`${dt(u.data)} · ${ET[u.tipo].label}`:''}</td></tr>`;}).join('')}</tbody></table>`;
 }
 
 function vClienti(){
@@ -465,7 +465,7 @@ function vOpportunita(id){
   if(isSeg() && o.segnalatoreId!==me()) return '<div class="empty">Non autorizzato</div>';
   const c=cli(o.clienteId), s=seg(o.segnalatoreId), evs=oppEventi(o), st=oppStato(o);
   const r=s?regolaPer(s,o):null; const prov=calcProvvigioni().filter(x=>x.opp.id===id);
-  return `<div class="top"><div><a href="#/opportunita" class="crumb">← Opportunità</a><h1>${esc(o.titolo)} ${badgeStato(o)}</h1><p class="sub">${esc(c?.ragioneSociale)} · segnalata da ${isSeg()?esc(s?.nome):`<a href="#/segnalatori/${s?.id}">${esc(s?.nome)}</a>`} il ${dt(o.dataSegnalazione)}</p></div>
+  return `<div class="top"><div><a href="#/opportunita" class="crumb">← Opportunità</a><h1>${esc(o.titolo)} ${badgeStato(o)}</h1><p class="sub">${esc(c?.ragioneSociale)} · segnalata da ${isSeg()?esc(s?.nome):`<a href="#/segnalatori/${s?.id}">${esc(s?.nome)}</a>`} il ${dt(o.dataSegnalazione)}${o.luogo?` · luogo: <b>${esc(o.luogo)}</b>`:''}</p></div>
     <div class="actions">${isSeg()?'':`<button class="btn" onclick="formOpportunita('${o.id}')">Modifica</button><button class="btn p" onclick="formEvento('${o.id}')">+ Evento di follow-up</button>`}</div></div>
   <div class="grid g4" style="margin-bottom:18px">
     <div class="kpi"><div class="l">Tipologia</div><div class="v" style="font-size:16px">${esc(tOpp(o.tipologiaId)?.nome||'')}</div></div>
@@ -610,7 +610,7 @@ window.formCliente=(id,segId)=>{
 };
 
 window.formOpportunita=(id,segId,cliId)=>{
-  const o=id?opp(id):{clienteId:cliId||'',segnalatoreId: isSeg()?me():(segId||''),tipologiaId:S.tipologieOpportunita[0]?.id,titolo:'',descr:'',valoreStimato:'',dataSegnalazione:TODAY};
+  const o=id?opp(id):{clienteId:cliId||'',segnalatoreId: isSeg()?me():(segId||''),tipologiaId:S.tipologieOpportunita[0]?.id,titolo:'',luogo:'',descr:'',valoreStimato:'',dataSegnalazione:TODAY};
   if(cliId && !id) o.segnalatoreId = cli(cliId)?.segnalatoreId || o.segnalatoreId;
   const clientiSel=()=> (isSeg()? S.clienti.filter(c=>c.segnalatoreId===me()) : [...S.clienti]).sort((a,b)=>a.ragioneSociale.localeCompare(b.ragioneSociale));
   if(!clientiSel().length){ alert('Nessun cliente disponibile: inserisci prima un cliente.'); return; }
@@ -619,6 +619,7 @@ window.formOpportunita=(id,segId,cliId)=>{
     ${isSeg()?`<input type="hidden" name="segnalatoreId" value="${me()}">`:fld('Segnalatore *',sel('segnalatoreId',S.segnalatori.map(s=>[s.id,s.nome]),o.segnalatoreId||cli(o.clienteId||clientiSel()[0].id)?.segnalatoreId,'id="oppSeg"'))}
     ${fld('Tipologia opportunità *',sel('tipologiaId',S.tipologieOpportunita.map(t=>[t.id,t.nome]),o.tipologiaId))}
     ${fld('Titolo *',inp('titolo',o.titolo,'text','required'),true)}
+    ${fld('Luogo',inp('luogo',o.luogo||'','text','maxlength="200" placeholder="Es. Marina di Portofino, cantiere, città…"'),true)}
     ${fld('Valore stimato (€)',inp('valoreStimato',o.valoreStimato,'number','min="0" step="100"'))}${fld('Data segnalazione',inp('dataSegnalazione',o.dataSegnalazione,'date'))}
     ${fld('Descrizione',`<textarea name="descr">${esc(o.descr)}</textarea>`,true)}</div>
     ${id?'':'<p class="small muted" style="margin:10px 0 0">Alla creazione viene registrato automaticamente l\'evento "Segnalazione".</p>'}`,

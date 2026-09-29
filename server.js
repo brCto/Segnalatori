@@ -63,6 +63,12 @@ app.use('/api', (req, res, next) => {
 const auth = (req, res, next) => req.user ? next() : next(new HttpError(401, 'Accesso richiesto'));
 const admin = (req, res, next) => req.user?.ruolo === 'admin' ? next() : next(new HttpError(403, 'Operazione riservata al back office'));
 const isSeg = req => req.user.ruolo === 'segnalatore';
+// Il segnalatore opera solo per sé: un segnalatoreId diverso dal proprio viene rifiutato.
+const proprioSegnalatore = (req, b) => {
+  const id = req.user.segnalatoreId;
+  if (str(b.segnalatoreId) && str(b.segnalatoreId) !== id) throw new HttpError(403, 'Puoi inserire dati solo a tuo nome');
+  return id;
+};
 const wrap = fn => (req, res, next) => { try { const r = fn(req, res); if (r && r.then) r.catch(next); } catch (e) { next(e); } };
 
 // Limite tentativi di accesso per IP (10 ogni 15 minuti).
@@ -222,7 +228,7 @@ function clienteBody(req, b, existing) {
     ragioneSociale: req_(b.ragioneSociale, 'ragione sociale'), piva: str(b.piva, 30), email: email(b.email), telefono: str(b.telefono, 50),
     citta: str(b.citta, 100), dataInserimento: b.dataInserimento ? date(b.dataInserimento, 'data inserimento') : D.now().slice(0, 10), note: str(b.note, 2000),
   };
-  data.segnalatoreId = isSeg(req) ? req.user.segnalatoreId : exists('segnalatori', b.segnalatoreId, 'Segnalatore');
+  data.segnalatoreId = isSeg(req) ? proprioSegnalatore(req, b) : exists('segnalatori', b.segnalatoreId, 'Segnalatore');
   if (existing && isSeg(req)) data.segnalatoreId = existing.segnalatoreId;
   return data;
 }
@@ -253,11 +259,11 @@ app.delete('/api/clienti/:id', auth, admin, wrap((req, res) => {
 function opportunitaBody(req, b) {
   const clienteId = exists('clienti', b.clienteId, 'Cliente');
   const c = D.get('SELECT segnalatoreId FROM clienti WHERE id=?', clienteId);
-  let segnalatoreId = isSeg(req) ? req.user.segnalatoreId : exists('segnalatori', b.segnalatoreId, 'Segnalatore');
+  const segnalatoreId = isSeg(req) ? proprioSegnalatore(req, b) : exists('segnalatori', b.segnalatoreId, 'Segnalatore');
   if (isSeg(req) && c.segnalatoreId !== segnalatoreId) throw new HttpError(403, 'Il cliente non è nel tuo portafoglio');
   return {
     clienteId, segnalatoreId, tipologiaId: exists('tipologieOpportunita', b.tipologiaId, 'Tipologia'),
-    titolo: req_(b.titolo, 'titolo'), descr: str(b.descr, 4000), valoreStimato: num(b.valoreStimato, 'valore stimato'),
+    titolo: req_(b.titolo, 'titolo'), luogo: str(b.luogo, 200), descr: str(b.descr, 4000), valoreStimato: num(b.valoreStimato, 'valore stimato'),
     dataSegnalazione: date(b.dataSegnalazione || D.now().slice(0, 10), 'data segnalazione'),
   };
 }

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Segnalatori</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%234f46e5'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 19v-1.5a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3V19'/%3E%3Ccircle cx='9.5' cy='8' r='3'/%3E%3Cpath d='M20 19v-1.5a3 3 0 0 0-2.3-2.9M15.5 5.1a3 3 0 0 1 0 5.8'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#eef2f7; --panel:#ffffff; --line:#e6eaf0; --text:#0f172a; --muted:#64748b; --muted2:#94a3b8;
+    --brand:#2563eb; --brand2:#4f46e5; --brand-soft:#e0e9ff; --brand-ink:#1e40af;
+    --ok:#16a34a; --ok-soft:#dcfce7; --ok-ink:#166534;
+    --warn:#d97706; --warn-soft:#fef3c7; --warn-ink:#92400e;
+    --bad:#dc2626; --bad-soft:#fee2e2; --bad-ink:#991b1b;
+    --info:#475569; --info-soft:#e2e8f0;
+    --radius:14px; --sidebar:250px;
+    --shadow:0 1px 2px rgba(16,24,40,.05),0 2px 8px rgba(16,24,40,.06);
+    --shadow-lg:0 24px 60px rgba(15,23,42,.28);
+  }
+  *{box-sizing:border-box} [hidden]{display:none!important}
+  html{-webkit-font-smoothing:antialiased}
+  body{margin:0;font:14px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
+  a{color:var(--brand);text-decoration:none}
+  h1{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  h2{font-size:15px;font-weight:700;letter-spacing:-.01em;margin:0 0 12px}
+  .sub{color:var(--muted);margin:0 0 20px;font-size:13.5px}
+  b{font-weight:600}
+
+  /* ---------- layout ---------- */
+  .shell{display:grid;grid-template-columns:var(--sidebar) 1fr;min-height:100vh}
+  aside{background:linear-gradient(180deg,#0f172a 0%,#111c34 100%);color:#cbd5e1;padding:22px 16px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+  .brand{display:flex;align-items:center;gap:11px;padding:2px 6px 18px;color:#fff;font-weight:800;font-size:17px;letter-spacing:-.02em}
+  .brand .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:grid;place-items:center;box-shadow:0 6px 16px rgba(99,102,241,.45);flex:none}
+  .brand .logo svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  .brand small{display:block;font-weight:500;color:#64748b;font-size:11px;letter-spacing:0}
+  /* ---------- login ---------- */
+  .auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(160deg,#0f172a 0%,#1e293b 60%,#1e3a8a 100%)}
+  .auth .box{background:#fff;border-radius:20px;padding:34px 36px;width:100%;max-width:420px;box-shadow:var(--shadow-lg)}
+  .auth .brand{color:var(--text);padding:0 0 20px;font-size:20px} .auth .brand small{color:var(--muted)}
+  .auth .f{margin-bottom:14px} .auth label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:600}
+  .auth .btn{width:100%;justify-content:center;padding:11px;font-size:14px;margin-top:6px}
+  .auth .hint{font-size:12.5px;color:var(--muted);margin:14px 0 0;line-height:1.5}
+  .chk{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--text)} .chk input{width:auto}
+  .side-note a{cursor:pointer}
+  nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#94a3b8;margin-bottom:3px;font-weight:500;transition:.15s}
+  nav a svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+  nav a:hover{background:rgba(255,255,255,.06);color:#e2e8f0}
+  nav a.active{background:linear-gradient(90deg,rgba(59,130,246,.28),rgba(99,102,241,.14));color:#fff;box-shadow:inset 3px 0 0 #60a5fa}
+  .side-foot{margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,.07)}
+  .userchip{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:rgba(255,255,255,.04)}
+  .userchip .n{color:#f1f5f9;font-weight:600;font-size:13px;line-height:1.2}
+  .userchip .r{color:#64748b;font-size:11px}
+  .side-note{font-size:11px;color:#475569;margin-top:12px;line-height:1.5}
+  .side-note a{color:#64748b;text-decoration:underline}
+  main{padding:30px 36px 48px;max-width:1360px;width:100%;min-width:0}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .crumb{font-size:12.5px;color:var(--muted);display:inline-flex;align-items:center;gap:4px;margin-bottom:6px;font-weight:500}
+  .crumb:hover{color:var(--brand)}
+
+  /* ---------- avatar ---------- */
+  .av{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;font-size:11.5px;font-weight:700;color:#fff;flex:none;letter-spacing:.02em}
+  .av.lg{width:46px;height:46px;font-size:16px}
+  .av.sm{width:24px;height:24px;font-size:10px}
+  .who{display:inline-flex;align-items:center;gap:9px;vertical-align:middle} .who > span:last-child{white-space:nowrap}
+
+  /* ---------- cards / kpi ---------- */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin-bottom:18px;box-shadow:var(--shadow);overflow-x:auto}
+  .grid > *{min-width:0}
+  .card > h2{display:flex;align-items:center;gap:8px}
+  .grid{display:grid;gap:16px} .g2{grid-template-columns:1fr 1fr} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+  .kpi{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px 16px;box-shadow:var(--shadow)}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--kc,var(--brand))}
+  .kpi::after{content:"";position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;background:var(--kc,var(--brand));opacity:.07}
+  .kpi .l{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+  .kpi .v{font-size:28px;font-weight:800;margin-top:6px;letter-spacing:-.03em;line-height:1.1}
+  .kpi .h{font-size:12px;color:var(--muted);margin-top:6px}
+  .grid .kpi:nth-child(1){--kc:#2563eb} .grid .kpi:nth-child(2){--kc:#7c3aed} .grid .kpi:nth-child(3){--kc:#16a34a} .grid .kpi:nth-child(4){--kc:#d97706}
+  .g3 .kpi:nth-child(2){--kc:#16a34a} .g3 .kpi:nth-child(3){--kc:#d97706}
+
+  /* ---------- tables ---------- */
+  table{width:100%;border-collapse:separate;border-spacing:0}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;background:#f8fafc}
+  thead th:first-child{border-radius:10px 0 0 10px} thead th:last-child{border-radius:0 10px 10px 0}
+  tbody tr:last-child td{border-bottom:0}
+  td.num,th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+  tr.tot td{font-weight:700;background:#f8fafc}
+  .clickable{cursor:pointer} tr.clickable:hover td{background:#f5f8ff}
+  .card table{margin:0 -6px;width:calc(100% + 12px)}
+
+  /* ---------- buttons / badges ---------- */
+  .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid #d7dde7;background:#fff;padding:8px 14px;border-radius:10px;cursor:pointer;font:inherit;font-weight:600;font-size:13px;color:var(--text);box-shadow:0 1px 2px rgba(16,24,40,.05);transition:.15s}
+  .btn:hover{background:#f8fafc;border-color:#c5cdd9}
+  .btn.p{background:linear-gradient(135deg,var(--brand),var(--brand2));border-color:transparent;color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.35)}
+  .btn.p:hover{filter:brightness(1.06)}
+  .btn.s{padding:5px 10px;font-size:12px;border-radius:8px} .btn.danger{color:var(--bad)}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 8px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap;line-height:1.4}
+  .badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85}
+  .b-info{background:var(--info-soft);color:var(--info)} .b-brand{background:var(--brand-soft);color:var(--brand-ink)} .b-ok{background:var(--ok-soft);color:var(--ok-ink)}
+  .b-warn{background:var(--warn-soft);color:var(--warn-ink)} .b-bad{background:var(--bad-soft);color:var(--bad-ink)} .b-muted{background:#f1f5f9;color:var(--muted)}
+  .muted{color:var(--muted)} .small{font-size:12px} .right{text-align:right}
+  .pill{display:inline-block;background:#f1f5f9;border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px;margin:3px 6px 3px 0}
+
+  /* ---------- forms ---------- */
+  .filters{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:14px;padding:14px;background:#f8fafc;border-radius:12px;border:1px solid var(--line)}
+  .filters label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+  .filters select{min-width:160px}
+  input,select,textarea{font:inherit;padding:9px 11px;border:1px solid #d7dde7;border-radius:10px;background:#fff;color:var(--text);width:100%;transition:.15s}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+  textarea{min-height:76px;resize:vertical}
+  .form{display:grid;grid-template-columns:1fr 1fr;gap:14px} .form .full{grid-column:1/-1}
+  .form label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:600}
+  .alert{padding:12px 14px;border-radius:10px;margin-bottom:12px;font-size:13px;line-height:1.5}
+  .alert.warn{background:var(--warn-soft);color:var(--warn-ink);border:1px solid #fde68a} .alert.bad{background:var(--bad-soft);color:var(--bad-ink);border:1px solid #fecaca}
+  .alert.ok{background:var(--ok-soft);color:var(--ok-ink);border:1px solid #bbf7d0}
+
+  /* ---------- modal ---------- */
+  .ov{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;padding:48px 16px;overflow:auto;z-index:50}
+  .md{background:#fff;border-radius:18px;width:100%;max-width:700px;padding:26px 28px;box-shadow:var(--shadow-lg)}
+  .md h2{font-size:18px;margin-bottom:18px;letter-spacing:-.02em}
+  .md .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+
+  /* ---------- timeline ---------- */
+  .tl{list-style:none;padding:0;margin:4px 0 0 10px;border-left:2px solid var(--line)}
+  .tl li{position:relative;padding:0 0 18px 22px}
+  .tl li::before{content:"";position:absolute;left:-8px;top:5px;width:14px;height:14px;border-radius:50%;background:var(--brand);border:3px solid #fff;box-shadow:0 0 0 2px var(--brand-soft)}
+  .tl li.persa::before{background:var(--bad);box-shadow:0 0 0 2px var(--bad-soft)}
+  .tl li.pagamento::before{background:var(--ok);box-shadow:0 0 0 2px var(--ok-soft)}
+  .tl li.contratto::before,.tl li.consegna::before{background:var(--warn);box-shadow:0 0 0 2px var(--warn-soft)}
+  .tl .d{font-size:12px;color:var(--muted);margin-top:3px}
+
+  /* ---------- funnel ---------- */
+  .funnel div{display:flex;align-items:center;gap:12px;margin-bottom:9px;font-size:13px}
+  .funnel span.lab{width:100px;color:var(--muted);font-weight:500}
+  .funnel span.bar{height:22px;background:linear-gradient(90deg,#3b82f6,#6366f1);border-radius:6px;min-width:4px;transition:width .3s}
+  .funnel span.bar.persa{background:linear-gradient(90deg,#f87171,#dc2626)} .funnel span.bar.won{background:linear-gradient(90deg,#4ade80,#16a34a)}
+  .funnel span.cnt{font-weight:700;font-variant-numeric:tabular-nums}
+
+  .tabs{display:flex;gap:4px;background:#e8edf4;padding:4px;border-radius:12px;width:max-content;margin-bottom:18px}
+  .tabs a{padding:7px 16px;border-radius:9px;color:var(--muted);font-weight:600;font-size:13px}
+  .tabs a.active{background:#fff;color:var(--text);box-shadow:var(--shadow)}
+  td.trunc{max-width:230px} td.trunc > *{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .empty{padding:32px;text-align:center;color:var(--muted2)}
+
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr} aside{position:static;height:auto} main{padding:18px}
+    .g2,.g3,.g4{grid-template-columns:1fr 1fr} .form{grid-template-columns:1fr}
+  }
+  @media (max-width:560px){ .g2,.g3,.g4{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside>
+    <div class="brand"><span class="logo"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Segnalatori<small>segnalazioni e provvigioni</small></span></div>
+    <nav id="nav"></nav>
+    <div class="side-foot">
+      <div class="userchip" id="userChip"></div>
+      <div class="side-note"><a href="#" id="pwdBtn">Cambia password</a> · <a href="#" id="logoutBtn">Esci</a></div>
+    </div>
+  </aside>
+  <main id="app"><div class="empty">Caricamento…</div></main>
+</div>
+<div id="auth" hidden></div>
+<div id="modalRoot"></div>
+
+<script>
+/* ===================== COSTANTI ===================== */
+const TODAY = new Date().toISOString().slice(0,10);
+
+const EVENT_TYPES = [
+  {k:'segnalazione', label:'Segnalazione', ord:0, cls:'b-info'},
+  {k:'contatto',     label:'Contatto',     ord:1, cls:'b-info'},
+  {k:'incontro',     label:'Incontro',     ord:2, cls:'b-brand'},
+  {k:'offerta',      label:'Offerta',      ord:3, cls:'b-brand', importo:true},
+  {k:'contratto',    label:'Contratto',    ord:4, cls:'b-warn',  importo:true},
+  {k:'consegna',     label:'Consegna',     ord:5, cls:'b-warn'},
+  {k:'pagamento',    label:'Pagamento',    ord:6, cls:'b-ok',    importo:true},
+  {k:'persa',        label:'Persa',        ord:99,cls:'b-bad'},
+];
+const ET = Object.fromEntries(EVENT_TYPES.map(e=>[e.k,e]));
+const MATURAZIONE = [{k:'contratto',label:'Alla firma del contratto'},{k:'pagamento',label:'All\'incasso (pagamento)'},{k:'consegna',label:'Alla consegna'}];
+
+/* ===================== STATO / API ===================== */
+let S = null; // stato ricevuto dal server (già filtrato per ruolo)
+async function api(method, path, body){
+  const r = await fetch(path, {method, headers: body!==undefined?{'Content-Type':'application/json'}:{}, body: body!==undefined?JSON.stringify(body):undefined, credentials:'same-origin'});
+  let j={}; try{ j=await r.json(); }catch(e){}
+  if(r.status===401 && path!=='/api/login'){ S=null; showAuth(); throw new ApiError('Sessione scaduta, accedi di nuovo', 401, j); }
+  if(!r.ok) throw new ApiError(j.error||('Errore '+r.status), r.status, j);
+  return j;
+}
+class ApiError extends Error{ constructor(m,status,data){ super(m); this.status=status; this.data=data||{}; } }
+async function refresh(){ S = await api('GET','/api/state'); render(); }
+function uid(){ return Math.random().toString(36).slice(2,10); }
+
+/* ===================== UTILITY ===================== */
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const eur = n => (n==null||isNaN(n)) ? '—' : new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);
+const eur2 = n => (n==null||isNaN(n)) ? '—' : new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(n);
+const dt = d => d ? d.split('-').reverse().join('/') : '—';
+const seg = id => S.segnalatori.find(x=>x.id===id);
+const cli = id => S.clienti.find(x=>x.id===id);
+const opp = id => S.opportunita.find(x=>x.id===id);
+const tSeg = id => S.tipologieSegnalatore.find(x=>x.id===id);
+const tOpp = id => S.tipologieOpportunita.find(x=>x.id===id);
+const nomeSeg = id => seg(id)?.nome || '—';
+const nomeCli = id => cli(id)?.ragioneSociale || '—';
+const isSeg = () => S.user.ruolo==='segnalatore';
+const me = () => S.user.segnalatoreId;
+
+function oppEventi(o){ return S.eventi.filter(e=>e.opportunitaId===o.id).sort((a,b)=> a.data<b.data?-1: a.data>b.data?1 : ET[a.tipo].ord-ET[b.tipo].ord); }
+function oppStato(o){
+  const ev = oppEventi(o);
+  if(ev.some(e=>e.tipo==='persa')) return ET.persa;
+  let best = ET.segnalazione; ev.forEach(e=>{ if(ET[e.tipo].ord>best.ord) best=ET[e.tipo]; });
+  return best;
+}
+function oppUltimoEvento(o){ const ev=oppEventi(o); return ev[ev.length-1]; }
+function oppValore(o){ // valore più aggiornato: contratto > offerta > stimato
+  const ev=oppEventi(o); const c=ev.filter(e=>e.tipo==='contratto'&&e.importo).pop(); if(c) return +c.importo;
+  const of=ev.filter(e=>e.tipo==='offerta'&&e.importo).pop(); if(of) return +of.importo; return +o.valoreStimato||0;
+}
+function oppAperta(o){ const s=oppStato(o); return s.k!=='persa' && s.k!=='pagamento'; }
+function badgeStato(o){ const s=oppStato(o); return `<span class="badge ${s.cls}">${s.label}</span>`; }
+
+/* ---- provvigioni ---- */
+function regolaPer(segnalatore, o){
+  let best=null, bestScore=-1;
+  S.regole.forEach(r=>{
+    const okS = !r.tipSegId || r.tipSegId===segnalatore.tipologiaId;
+    const okO = !r.tipOppId || r.tipOppId===o.tipologiaId;
+    if(!okS||!okO) return;
+    const score = (r.tipSegId?2:0)+(r.tipOppId?1:0);
+    if(score>bestScore){best=r;bestScore=score;}
+  });
+  return best;
+}
+// Righe di provvigione maturate: una per evento "maturante" con importo
+function calcProvvigioni(){
+  const rows=[];
+  S.opportunita.forEach(o=>{
+    const sg=seg(o.segnalatoreId); if(!sg) return;
+    const r=regolaPer(sg,o); if(!r) return;
+    const evs=oppEventi(o).filter(e=>e.tipo===r.maturaSu);
+    evs.forEach((e,i)=>{
+      const base = e.importo!=null && e.importo!=='' ? +e.importo : (r.maturaSu==='consegna' ? oppValore(o) : 0);
+      const prov = Math.round((base*r.perc/100 + (i===0?+r.fisso:0))*100)/100;
+      if(prov<=0) return;
+      const liq = S.liquidazioni[e.id];
+      rows.push({eventoId:e.id, opp:o, segnalatoreId:o.segnalatoreId, data:e.data, base, prov, regola:r, evento:e, liquidata:!!liq, liq});
+    });
+  });
+  return rows.sort((a,b)=>a.data<b.data?1:-1);
+}
+const inPeriodo = (d, anno, mese) => (!anno || d.startsWith(anno)) && (!mese || d.slice(5,7)===mese);
+
+/* ===================== ROUTING / NAV ===================== */
+const ICONS = {
+  dashboard:'<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
+  segnalatori:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  clienti:'<path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-5h6v5M9 11h.01M15 11h.01M9 15h.01M15 15h.01"/>',
+  opportunita:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  provvigioni:'<circle cx="12" cy="12" r="9"/><path d="M14.5 9.5a2.5 2.5 0 0 0-5 0c0 3 5 2 5 5a2.5 2.5 0 0 1-5 0M12 6v1.5M12 16.5V18"/>',
+  tipologie:'<path d="M4 6h16M4 12h16M4 18h10"/>',
+  me:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  impostazioni:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+};
+const icon = k => `<svg viewBox="0 0 24 24">${ICONS[k]||''}</svg>`;
+const AV_COLORS=['#2563eb','#7c3aed','#0891b2','#16a34a','#d97706','#db2777','#4f46e5','#0d9488'];
+function av(nome,cls=''){ const s=seg(nome)||{nome:String(nome||'')}; const parts=s.nome.replace(/[^A-Za-zÀ-ÿ ]/g,' ').trim().split(/\s+/); const ini=(parts[0]?.[0]||'?')+(parts[1]?.[0]||''); let h=0; for(const c of s.nome) h=(h*31+c.charCodeAt(0))>>>0; return `<span class="av ${cls}" style="background:${AV_COLORS[h%AV_COLORS.length]}">${esc(ini.toUpperCase())}</span>`; }
+const who = (id,cls='') => `<span class="who">${av(id,cls)}<span>${esc(nomeSeg(id))}</span></span>`;
+const NAV_AZ = [['dashboard','Cruscotto'],['segnalatori','Segnalatori'],['clienti','Clienti'],['opportunita','Opportunità'],['provvigioni','Provvigioni'],['tipologie','Tipologie'],['impostazioni','Impostazioni']];
+const NAV_SG = [['me','La mia situazione'],['clienti','I miei clienti'],['opportunita','Le mie segnalazioni'],['provvigioni','Le mie provvigioni']];
+
+function renderSide(){
+  const nav=document.getElementById('nav'); const cur=route().page;
+  nav.innerHTML=(isSeg()?NAV_SG:NAV_AZ).map(([p,l])=>`<a href="#/${p}" class="${cur===p?'active':''}">${icon(p)}${l}</a>`).join('');
+  const chip=document.getElementById('userChip'); const s=isSeg()?seg(me()):null;
+  chip.innerHTML = s ? `${av(s.id)}<div><div class="n">${esc(s.nome)}</div><div class="r">${esc(tSeg(s.tipologiaId)?.nome||'')}</div></div>`
+    : `<span class="av" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6)">${esc((S.user.nome||'AZ').slice(0,2).toUpperCase())}</span><div><div class="n">${esc(S.user.nome||'Back office')}</div><div class="r">${esc(S.user.email)}</div></div>`;
+}
+function route(){ const h=location.hash.replace(/^#\/?/,''); const [page,id]=h.split('/'); return {page: page || (isSeg()?'me':'dashboard'), id}; }
+function render(){
+  if(!S) return;
+  renderSide();
+  const {page,id}=route(); const app=document.getElementById('app');
+  const views={dashboard:vDashboard, segnalatori: id?()=>vSegnalatore(id):vSegnalatori, clienti:vClienti, opportunita: id?()=>vOpportunita(id):vOpportunitaList, provvigioni:vProvvigioni, tipologie:vTipologie, impostazioni:vImpostazioni, me:vMe};
+  const fn = views[page] || (isSeg()?vMe:vDashboard);
+  if(isSeg() && ['dashboard','segnalatori','tipologie','impostazioni'].includes(page)){ location.hash='#/me'; return; }
+  app.innerHTML = fn();
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange', render);
+document.getElementById('logoutBtn').onclick=async e=>{ e.preventDefault(); try{ await api('POST','/api/logout',{}); }catch(err){} S=null; location.hash=''; showAuth(); };
+document.getElementById('pwdBtn').onclick=e=>{ e.preventDefault(); formPassword(); };
+
+/* ===================== LOGIN / CONFIGURAZIONE INIZIALE ===================== */
+function showAuth(setup){
+  document.querySelector('.shell').hidden=true; document.getElementById('modalRoot').innerHTML=''; document.getElementById('app').innerHTML='<div class="empty">Caricamento…</div>';
+  const a=document.getElementById('auth'); a.hidden=false;
+  a.innerHTML=`<div class="auth"><form class="box" id="authForm">
+    <div class="brand"><span class="logo"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span>Segnalatori<small>${setup?'configurazione iniziale':'segnalazioni e provvigioni'}</small></span></div>
+    ${setup?`<p class="hint" style="margin:0 0 16px">Benvenuto. Crea il primo utente del back office: potrai poi aggiungere segnalatori e abilitare il loro accesso.</p>
+      <div class="f"><label>Nome</label><input name="nome" placeholder="Es. Amministrazione" maxlength="100"></div>`:''}
+    <div class="f"><label>Email</label><input name="email" type="email" required autocomplete="username" autofocus></div>
+    <div class="f"><label>Password</label><input name="password" type="password" required minlength="${setup?8:1}" autocomplete="${setup?'new-password':'current-password'}"></div>
+    ${setup?`<div class="f"><label class="chk"><input type="checkbox" name="demo" checked> Carica dati di esempio (yacht, charter, refit, broker e marina)</label></div>`:''}
+    <div id="authAlert"></div>
+    <button class="btn p" type="submit">${setup?'Crea utente e inizia':'Accedi'}</button>
+    ${setup?'<p class="hint">La password deve avere almeno 8 caratteri. I dati di esempio si possono cancellare in seguito.</p>':'<p class="hint">Sei un segnalatore e non hai le credenziali? Chiedile all\'azienda.</p>'}
+  </form></div>`;
+  const f=a.querySelector('#authForm');
+  f.onsubmit=async e=>{ e.preventDefault(); const d=Object.fromEntries(new FormData(f)); d.demo=!!d.demo; const btn=f.querySelector('button'); btn.disabled=true;
+    try{ await api('POST', setup?'/api/setup':'/api/login', d); a.hidden=true; a.innerHTML=''; document.querySelector('.shell').hidden=false; await refresh(); }
+    catch(err){ a.querySelector('#authAlert').innerHTML=`<div class="alert bad">${esc(err.message)}</div>`; btn.disabled=false; } };
+}
+async function boot(){
+  try{
+    const m=await api('GET','/api/me');
+    if(m.needsSetup) return showAuth(true);
+    if(!m.user) return showAuth(false);
+    await refresh();
+  }catch(err){ if(err.status!==401) document.getElementById('app').innerHTML=`<div class="empty">Errore di connessione al server: ${esc(err.message)}</div>`; }
+}
+
+/* ===================== MODAL ===================== */
+function openModal(title, body, onSubmit, opts={}){
+  const root=document.getElementById('modalRoot');
+  root.innerHTML=`<div class="ov"><div class="md"><h2>${esc(title)}</h2><form id="mf">${body}
+    <div id="mfAlert" style="margin-top:12px"></div>
+    <div class="foot"><button type="button" class="btn" id="mfCancel">Annulla</button><button class="btn p" type="submit">${esc(opts.submitLabel||'Salva')}</button></div></form></div></div>`;
+  const close=()=>root.innerHTML='';
+  root.querySelector('#mfCancel').onclick=close;
+  root.querySelector('.ov').onclick=e=>{ if(e.target.classList.contains('ov')) close(); };
+  const form=root.querySelector('#mf');
+  form.onsubmit=async e=>{ e.preventDefault(); const d=Object.fromEntries(new FormData(form)); const btn=form.querySelector('button[type=submit]'); btn.disabled=true;
+    try{ const res=await onSubmit(d, form); if(res!==false){ close(); await refresh(); if(opts.after) opts.after(res); } }
+    catch(err){ if(err.status!==401) setAlert(form, esc(err.message), 'bad'); }
+    finally{ btn.disabled=false; } };
+  if(opts.onOpen) opts.onOpen(form);
+  return form;
+}
+// Azione rapida con conferma (eliminazioni, liquidazioni): esegue la chiamata e ricarica.
+async function azione(msg, fn){ if(msg && !confirm(msg)) return; try{ await fn(); await refresh(); }catch(err){ if(err.status!==401) alert(err.message); } }
+const fld=(label,inner,full)=>`<div class="${full?'full':''}"><label>${label}</label>${inner}</div>`;
+const inp=(name,val='',type='text',extra='')=>`<input name="${name}" type="${type}" value="${esc(val)}" ${extra}>`;
+const sel=(name,options,val,extra='')=>`<select name="${name}" ${extra}>${options.map(([v,l])=>`<option value="${esc(v)}" ${String(v)===String(val)?'selected':''}>${esc(l)}</option>`).join('')}</select>`;
+const setAlert=(form,html,cls='warn')=>{ form.querySelector('#mfAlert').innerHTML= html?`<div class="alert ${cls}">${html}</div>`:''; };
+
+/* ===================== VISTE AZIENDA ===================== */
+function vDashboard(){
+  const prov=calcProvvigioni();
+  const aperte=S.opportunita.filter(oppAperta);
+  const vinte=S.opportunita.filter(o=>oppStato(o).k==='pagamento');
+  const pipeline=aperte.reduce((a,o)=>a+oppValore(o),0);
+  const daLiq=prov.filter(r=>!r.liquidata).reduce((a,r)=>a+r.prov,0);
+  const anno=TODAY.slice(0,4);
+  const matAnno=prov.filter(r=>r.data.startsWith(anno)).reduce((a,r)=>a+r.prov,0);
+  // funnel
+  const counts=EVENT_TYPES.filter(e=>e.k!=='persa').map(e=>[e, S.opportunita.filter(o=>oppStato(o).k===e.k).length]);
+  const persa=S.opportunita.filter(o=>oppStato(o).k==='persa').length;
+  const max=Math.max(1,...counts.map(c=>c[1]),persa);
+  // per segnalatore
+  const rowsSeg=S.segnalatori.map(s=>{
+    const os=S.opportunita.filter(o=>o.segnalatoreId===s.id);
+    const ps=prov.filter(r=>r.segnalatoreId===s.id);
+    return {s, clienti:S.clienti.filter(c=>c.segnalatoreId===s.id).length, tot:os.length, aperte:os.filter(oppAperta).length, vinte:os.filter(o=>oppStato(o).k==='pagamento').length,
+      pipeline:os.filter(oppAperta).reduce((a,o)=>a+oppValore(o),0), maturato:ps.reduce((a,r)=>a+r.prov,0), daLiq:ps.filter(r=>!r.liquidata).reduce((a,r)=>a+r.prov,0)};
+  }).sort((a,b)=>b.maturato-a.maturato);
+  const recenti=[...S.eventi].sort((a,b)=>a.data<b.data?1:-1).slice(0,8);
+  return `<div class="top"><div><h1>Cruscotto azienda</h1><p class="sub">Situazione generale delle segnalazioni e dei segnalatori</p></div>
+    <div class="actions"><button class="btn" onclick="formCliente()">+ Cliente</button><button class="btn p" onclick="formOpportunita()">+ Opportunità</button></div></div>
+  <div class="grid g4" style="margin-bottom:18px">
+    <div class="kpi"><div class="l">Segnalatori attivi</div><div class="v">${S.segnalatori.filter(s=>s.attivo).length}</div><div class="h">${S.segnalatori.length} totali</div></div>
+    <div class="kpi"><div class="l">Opportunità aperte</div><div class="v">${aperte.length}</div><div class="h">pipeline ${eur(pipeline)}</div></div>
+    <div class="kpi"><div class="l">Provvigioni maturate ${anno}</div><div class="v">${eur(matAnno)}</div><div class="h">${vinte.length} opportunità incassate</div></div>
+    <div class="kpi"><div class="l">Provvigioni da liquidare</div><div class="v" style="color:var(--warn)">${eur(daLiq)}</div><div class="h"><a href="#/provvigioni">vai al report</a></div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><h2>Stato delle opportunità</h2><div class="funnel">
+      ${counts.map(([e,n])=>`<div><span class="lab">${e.label}</span><span class="bar ${e.k==='pagamento'?'won':''}" style="width:${n/max*60}%"></span><span class="cnt">${n}</span></div>`).join('')}
+      <div><span class="lab">Perse</span><span class="bar persa" style="width:${persa/max*60}%"></span><span class="cnt">${persa}</span></div>
+    </div></div>
+    <div class="card"><h2>Ultimi eventi</h2><table><tbody>${recenti.map(e=>{const o=opp(e.opportunitaId); return `<tr class="clickable" onclick="location.hash='#/opportunita/${o.id}'"><td class="small muted" style="white-space:nowrap">${dt(e.data)}</td><td><span class="badge ${ET[e.tipo].cls}">${ET[e.tipo].label}</span></td><td class="trunc"><b>${esc(o.titolo)}</b><div class="small muted">${esc(nomeCli(o.clienteId))}</div></td><td class="num">${e.importo?eur(e.importo):''}</td></tr>`;}).join('')}</tbody></table></div>
+  </div>
+  <div class="card"><h2>Situazione segnalatori</h2>
+  <table><thead><tr><th>Segnalatore</th><th>Tipologia</th><th class="num">Clienti</th><th class="num">Segnalazioni</th><th class="num">Aperte</th><th class="num">Vinte</th><th class="num">Pipeline</th><th class="num">Maturato</th><th class="num">Da liquidare</th></tr></thead>
+  <tbody>${rowsSeg.map(r=>`<tr class="clickable" onclick="location.hash='#/segnalatori/${r.s.id}'"><td>${who(r.s.id)} ${r.s.attivo?'':'<span class="badge b-muted">non attivo</span>'}</td><td class="small">${esc(tSeg(r.s.tipologiaId)?.nome||'')}</td><td class="num">${r.clienti}</td><td class="num">${r.tot}</td><td class="num">${r.aperte}</td><td class="num">${r.vinte}</td><td class="num">${eur(r.pipeline)}</td><td class="num">${eur(r.maturato)}</td><td class="num">${r.daLiq?`<b style="color:var(--warn)">${eur(r.daLiq)}</b>`:'—'}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function vSegnalatori(){
+  return `<div class="top"><div><h1>Segnalatori</h1><p class="sub">Anagrafica dei segnalatori e procacciatori</p></div>
+    <div class="actions"><button class="btn p" onclick="formSegnalatore()">+ Nuovo segnalatore</button></div></div>
+  <div class="card"><table><thead><tr><th>Nome</th><th>Tipologia</th><th>Contatti</th><th>Città</th><th>Dal</th><th class="num">Clienti</th><th class="num">Segnalazioni</th><th>Stato</th><th></th></tr></thead><tbody>
+  ${S.segnalatori.map(s=>`<tr class="clickable" onclick="location.hash='#/segnalatori/${s.id}'"><td><span class="who">${av(s.id)}<span><b>${esc(s.nome)}</b>${s.piva?`<div class="small muted">P.IVA ${esc(s.piva)}</div>`:''}</span></span></td><td>${esc(tSeg(s.tipologiaId)?.nome||'')}</td><td class="small">${esc(s.email)}<br>${esc(s.telefono)}</td><td>${esc(s.citta)}</td><td>${dt(s.dataInizio)}</td><td class="num">${S.clienti.filter(c=>c.segnalatoreId===s.id).length}</td><td class="num">${S.opportunita.filter(o=>o.segnalatoreId===s.id).length}</td><td>${s.attivo?'<span class="badge b-ok">attivo</span>':'<span class="badge b-muted">non attivo</span>'}</td><td class="right"><button class="btn s" onclick="event.stopPropagation();formSegnalatore('${s.id}')">Modifica</button></td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+
+function vSegnalatore(id){
+  const s=seg(id); if(!s) return '<div class="empty">Segnalatore non trovato</div>';
+  const os=S.opportunita.filter(o=>o.segnalatoreId===id).sort((a,b)=>a.dataSegnalazione<b.dataSegnalazione?1:-1);
+  const cs=S.clienti.filter(c=>c.segnalatoreId===id);
+  const prov=calcProvvigioni().filter(r=>r.segnalatoreId===id);
+  const mat=prov.reduce((a,r)=>a+r.prov,0), liq=prov.filter(r=>r.liquidata).reduce((a,r)=>a+r.prov,0);
+  return `<div class="top"><div><a href="#/segnalatori" class="crumb">← Segnalatori</a><h1>${av(s.id,'lg')}${esc(s.nome)} ${s.attivo?'':'<span class="badge b-muted">non attivo</span>'}</h1><p class="sub">${esc(tSeg(s.tipologiaId)?.nome||'')} · ${esc(s.citta)} · dal ${dt(s.dataInizio)}</p></div>
+    <div class="actions"><button class="btn" onclick="formSegnalatore('${s.id}')">Modifica anagrafica</button><button class="btn" onclick="formCliente(null,'${s.id}')">+ Cliente</button><button class="btn p" onclick="formOpportunita(null,'${s.id}')">+ Opportunità</button></div></div>
+  <div class="grid g4" style="margin-bottom:18px">
+    <div class="kpi"><div class="l">Clienti in portafoglio</div><div class="v">${cs.length}</div></div>
+    <div class="kpi"><div class="l">Segnalazioni</div><div class="v">${os.length}</div><div class="h">${os.filter(oppAperta).length} aperte · ${os.filter(o=>oppStato(o).k==='pagamento').length} incassate · ${os.filter(o=>oppStato(o).k==='persa').length} perse</div></div>
+    <div class="kpi"><div class="l">Provvigioni maturate</div><div class="v">${eur(mat)}</div><div class="h">liquidate ${eur(liq)}</div></div>
+    <div class="kpi"><div class="l">Da liquidare</div><div class="v" style="color:var(--warn)">${eur(mat-liq)}</div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><h2>Anagrafica</h2><table><tbody>
+      <tr><td class="muted">Email</td><td>${esc(s.email)||'—'}</td></tr><tr><td class="muted">Telefono</td><td>${esc(s.telefono)||'—'}</td></tr>
+      <tr><td class="muted">P.IVA / CF</td><td>${esc(s.piva)||'—'}</td></tr><tr><td class="muted">Note</td><td>${esc(s.note)||'—'}</td></tr>
+      <tr><td class="muted">Accesso al portale</td><td>${s.haAccesso?'<span class="badge b-ok">abilitato</span>':'<span class="badge b-muted">non abilitato</span>'} <span class="small muted">· gestito da "Modifica anagrafica"</span></td></tr></tbody></table>
+      <p class="small muted" style="margin:10px 0 0">${esc(tSeg(s.tipologiaId)?.descr||'')}</p></div>
+    <div class="card"><h2>Portafoglio clienti</h2>${cs.length?`<table><tbody>${cs.map(c=>`<tr><td>${esc(c.ragioneSociale)}<div class="small muted">${esc(c.citta)} · P.IVA ${esc(c.piva)||'—'}</div></td><td class="num">${S.opportunita.filter(o=>o.clienteId===c.id).length} opp.</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nessun cliente</div>'}</div>
+  </div>
+  <div class="card"><h2>Segnalazioni</h2>${tabellaOpportunita(os,{hideSeg:true})}</div>
+  <div class="card"><h2>Provvigioni maturate</h2>${tabellaProvvigioni(prov,{hideSeg:true})}</div>`;
+}
+
+function tabellaOpportunita(list,{hideSeg}={}){
+  if(!list.length) return '<div class="empty">Nessuna opportunità</div>';
+  return `<table><thead><tr><th>Data</th><th>Opportunità</th><th>Cliente</th>${hideSeg?'':'<th>Segnalatore</th>'}<th>Tipologia</th><th class="num">Valore</th><th>Stato</th><th>Ultimo evento</th></tr></thead><tbody>
+  ${list.map(o=>{const u=oppUltimoEvento(o); return `<tr class="clickable" onclick="location.hash='#/opportunita/${o.id}'"><td class="small muted" style="white-space:nowrap">${dt(o.dataSegnalazione)}</td><td><b>${esc(o.titolo)}</b></td><td>${esc(nomeCli(o.clienteId))}</td>${hideSeg?'':`<td>${who(o.segnalatoreId,'sm')}</td>`}<td class="small">${esc(tOpp(o.tipologiaId)?.nome||'')}</td><td class="num">${eur(oppValore(o))}</td><td>${badgeStato(o)}</td><td class="small muted">${u?`${dt(u.data)} · ${ET[u.tipo].label}`:''}</td></tr>`;}).join('')}</tbody></table>`;
+}
+
+function vClienti(){
+  const list = (isSeg()? S.clienti.filter(c=>c.segnalatoreId===me()) : [...S.clienti]).sort((a,b)=>a.ragioneSociale.localeCompare(b.ragioneSociale));
+  return `<div class="top"><div><h1>${isSeg()?'I miei clienti':'Clienti'}</h1><p class="sub">${isSeg()?'Clienti nel tuo portafoglio':'Clienti segnalati, con il segnalatore che li ha portati'}</p></div>
+    <div class="actions"><button class="btn p" onclick="formCliente()">+ Nuovo cliente</button></div></div>
+  <div class="card"><table><thead><tr><th>Ragione sociale</th><th>P.IVA</th><th>Contatti</th><th>Città</th>${isSeg()?'':'<th>Segnalatore</th>'}<th>Inserito il</th><th class="num">Opportunità</th><th></th></tr></thead><tbody>
+  ${list.map(c=>`<tr><td><b>${esc(c.ragioneSociale)}</b></td><td>${esc(c.piva)||'—'}</td><td class="small">${esc(c.email)}<br>${esc(c.telefono)}</td><td>${esc(c.citta)}</td>${isSeg()?'':`<td><a href="#/segnalatori/${c.segnalatoreId}">${who(c.segnalatoreId,'sm')}</a></td>`}<td>${dt(c.dataInserimento)}</td><td class="num">${S.opportunita.filter(o=>o.clienteId===c.id).length}</td><td class="right" style="white-space:nowrap"><button class="btn s" onclick="formOpportunita(null,null,'${c.id}')">+ Opp.</button> <button class="btn s" onclick="formCliente('${c.id}')">Modifica</button></td></tr>`).join('')}
+  ${list.length?'':'<tr><td colspan="9" class="empty">Nessun cliente</td></tr>'}</tbody></table></div>`;
+}
+
+function vOpportunitaList(){
+  const q=window._fOpp||{};
+  let list = isSeg()? S.opportunita.filter(o=>o.segnalatoreId===me()) : S.opportunita;
+  if(q.stato) list=list.filter(o=>oppStato(o).k===q.stato);
+  if(q.seg) list=list.filter(o=>o.segnalatoreId===q.seg);
+  if(q.tip) list=list.filter(o=>o.tipologiaId===q.tip);
+  if(q.aperte) list=list.filter(oppAperta);
+  list=[...list].sort((a,b)=>a.dataSegnalazione<b.dataSegnalazione?1:-1);
+  return `<div class="top"><div><h1>${isSeg()?'Le mie segnalazioni':'Opportunità'}</h1><p class="sub">${list.length} opportunità</p></div>
+    <div class="actions"><button class="btn p" onclick="formOpportunita()">+ Nuova opportunità</button></div></div>
+  <div class="card"><div class="filters">
+    <div><label>Stato</label>${sel('stato',[['','Tutti'],...EVENT_TYPES.map(e=>[e.k,e.label])],q.stato,'onchange="fOpp(\'stato\',this.value)"')}</div>
+    ${isSeg()?'':`<div><label>Segnalatore</label>${sel('seg',[['','Tutti'],...S.segnalatori.map(s=>[s.id,s.nome])],q.seg,'onchange="fOpp(\'seg\',this.value)"')}</div>`}
+    <div><label>Tipologia</label>${sel('tip',[['','Tutte'],...S.tipologieOpportunita.map(t=>[t.id,t.nome])],q.tip,'onchange="fOpp(\'tip\',this.value)"')}</div>
+    <div><label>&nbsp;</label><label style="display:flex;gap:6px;align-items:center;font-size:13px;color:var(--text)"><input type="checkbox" style="width:auto" ${q.aperte?'checked':''} onchange="fOpp('aperte',this.checked)"> Solo aperte</label></div>
+  </div>${tabellaOpportunita(list,{hideSeg:isSeg()})}</div>`;
+}
+window.fOpp=(k,v)=>{ window._fOpp=window._fOpp||{}; window._fOpp[k]=v; render(); };
+
+function vOpportunita(id){
+  const o=opp(id); if(!o) return '<div class="empty">Opportunità non trovata</div>';
+  if(isSeg() && o.segnalatoreId!==me()) return '<div class="empty">Non autorizzato</div>';
+  const c=cli(o.clienteId), s=seg(o.segnalatoreId), evs=oppEventi(o), st=oppStato(o);
+  const r=s?regolaPer(s,o):null; const prov=calcProvvigioni().filter(x=>x.opp.id===id);
+  return `<div class="top"><div><a href="#/opportunita" class="crumb">← Opportunità</a><h1>${esc(o.titolo)} ${badgeStato(o)}</h1><p class="sub">${esc(c?.ragioneSociale)} · segnalata da ${isSeg()?esc(s?.nome):`<a href="#/segnalatori/${s?.id}">${esc(s?.nome)}</a>`} il ${dt(o.dataSegnalazione)}</p></div>
+    <div class="actions">${isSeg()?'':`<button class="btn" onclick="formOpportunita('${o.id}')">Modifica</button><button class="btn p" onclick="formEvento('${o.id}')">+ Evento di follow-up</button>`}</div></div>
+  <div class="grid g4" style="margin-bottom:18px">
+    <div class="kpi"><div class="l">Tipologia</div><div class="v" style="font-size:16px">${esc(tOpp(o.tipologiaId)?.nome||'')}</div></div>
+    <div class="kpi"><div class="l">Valore</div><div class="v">${eur(oppValore(o))}</div><div class="h">stimato ${eur(o.valoreStimato)}</div></div>
+    <div class="kpi"><div class="l">Incassato</div><div class="v">${eur(evs.filter(e=>e.tipo==='pagamento').reduce((a,e)=>a+(+e.importo||0),0))}</div></div>
+    <div class="kpi"><div class="l">Provvigione maturata</div><div class="v">${eur(prov.reduce((a,x)=>a+x.prov,0))}</div><div class="h">${r?`${r.perc}%${r.fisso?` + ${eur(r.fisso)}`:''} · ${MATURAZIONE.find(m=>m.k===r.maturaSu)?.label.toLowerCase()}`:'nessuna regola'}</div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><h2>Storico follow-up</h2>${evs.length?`<ul class="tl">${[...evs].reverse().map(e=>`<li class="${e.tipo}"><div><span class="badge ${ET[e.tipo].cls}">${ET[e.tipo].label}</span> ${e.importo?`<b>${eur(e.importo)}</b>`:''} ${isSeg()?'':`<button class="btn s danger" style="float:right" onclick="delEvento('${e.id}')">elimina</button>`}</div><div class="d">${dt(e.data)}</div>${e.note?`<div class="small">${esc(e.note)}</div>`:''}</li>`).join('')}</ul>`:'<div class="empty">Nessun evento</div>'}
+      ${st.k==='persa'?'<div class="alert bad">Opportunità persa.</div>': st.k==='pagamento'?'<div class="alert ok">Opportunità conclusa e incassata.</div>':''}</div>
+    <div>
+      <div class="card"><h2>Cliente</h2><b>${esc(c?.ragioneSociale)}</b><div class="small muted">P.IVA ${esc(c?.piva)||'—'} · ${esc(c?.citta)}</div><div class="small">${esc(c?.email)} ${esc(c?.telefono)}</div></div>
+      <div class="card"><h2>Descrizione</h2>${esc(o.descr)||'<span class="muted">—</span>'}</div>
+    </div>
+  </div>
+  <div class="card"><h2>Provvigioni</h2>${prov.length?tabellaProvvigioni(prov,{hideSeg:true,hideOpp:true}):`<div class="muted small">Nessuna provvigione ancora maturata. ${r?`Matura ${MATURAZIONE.find(m=>m.k===r.maturaSu)?.label.toLowerCase()} (regola: ${esc(r.descr)}).`:''}</div>`}</div>`;
+}
+window.delEvento=id=>azione('Eliminare questo evento?', ()=>api('DELETE','/api/eventi/'+id));
+
+function tabellaProvvigioni(rows,{hideSeg,hideOpp,liquida}={}){
+  if(!rows.length) return '<div class="empty">Nessuna provvigione nel periodo</div>';
+  const tot=rows.reduce((a,r)=>a+r.prov,0), liq=rows.filter(r=>r.liquidata).reduce((a,r)=>a+r.prov,0);
+  return `<table><thead><tr><th>Data</th>${hideSeg?'':'<th>Segnalatore</th>'}${hideOpp?'':'<th>Opportunità</th>'}<th>Evento</th><th class="num">Base</th><th>Regola</th><th class="num">Provvigione</th><th>Liquidazione</th></tr></thead><tbody>
+  ${rows.map(r=>`<tr><td class="small muted" style="white-space:nowrap">${dt(r.data)}</td>${hideSeg?'':`<td>${who(r.segnalatoreId,'sm')}</td>`}${hideOpp?'':`<td><a href="#/opportunita/${r.opp.id}">${esc(r.opp.titolo)}</a><div class="small muted">${esc(nomeCli(r.opp.clienteId))}</div></td>`}<td><span class="badge ${ET[r.evento.tipo].cls}">${ET[r.evento.tipo].label}</span>${r.evento.note?`<div class="small muted">${esc(r.evento.note)}</div>`:''}</td><td class="num">${eur(r.base)}</td><td class="small">${r.regola.perc}%${r.regola.fisso?` + ${eur(r.regola.fisso)}`:''}<div class="muted">${esc(r.regola.descr)}</div></td><td class="num"><b>${eur2(r.prov)}</b></td>
+    <td>${r.liquidata?`<span class="badge b-ok">liquidata</span><div class="small muted">${dt(r.liq.data)}${r.liq.nota?' · '+esc(r.liq.nota):''}</div>`:`<span class="badge b-warn">da liquidare</span>`} ${liquida&&!isSeg()?(r.liquidata?`<button class="btn s" onclick="toggleLiq('${r.eventoId}')">annulla</button>`:`<button class="btn s" onclick="toggleLiq('${r.eventoId}')">liquida</button>`):''}</td></tr>`).join('')}
+  <tr class="tot"><td colspan="${5-(hideSeg?1:0)-(hideOpp?1:0)}">Totale</td><td></td><td class="num">${eur2(tot)}</td><td class="small">liquidato ${eur2(liq)} · da liquidare <b>${eur2(tot-liq)}</b></td></tr></tbody></table>`;
+}
+window.toggleLiq=id=>azione(null, ()=> S.liquidazioni[id] ? api('DELETE','/api/liquidazioni/'+id) : api('POST','/api/liquidazioni',{eventoIds:[id],data:TODAY,nota:''}));
+window.liquidaTutto=(segId,anno,mese)=>{ const rows=calcProvvigioni().filter(r=>!r.liquidata&&(!segId||r.segnalatoreId===segId)&&inPeriodo(r.data,anno,mese)); if(!rows.length) return alert('Nulla da liquidare.');
+  azione(`Segnare come liquidate ${rows.length} provvigioni per ${eur2(rows.reduce((a,r)=>a+r.prov,0))}?`, ()=>api('POST','/api/liquidazioni',{eventoIds:rows.map(r=>r.eventoId),data:TODAY,nota:'Liquidazione periodo'})); };
+
+function vProvvigioni(){
+  const q=window._fProv||{anno:TODAY.slice(0,4),mese:'',seg:'',tab:'report'};
+  window._fProv=q;
+  const all=calcProvvigioni();
+  const anni=[...new Set(all.map(r=>r.data.slice(0,4)).concat(TODAY.slice(0,4)))].sort().reverse();
+  const MESI=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  let rows=all.filter(r=>inPeriodo(r.data,q.anno,q.mese));
+  if(isSeg()) rows=rows.filter(r=>r.segnalatoreId===me()); else if(q.seg) rows=rows.filter(r=>r.segnalatoreId===q.seg);
+  const bySeg={}; rows.forEach(r=>{(bySeg[r.segnalatoreId]=bySeg[r.segnalatoreId]||[]).push(r);});
+  const tabs = isSeg()?'':`<div class="tabs"><a href="#" class="${q.tab==='report'?'active':''}" onclick="fProv('tab','report');return false">Report periodico</a><a href="#" class="${q.tab==='regole'?'active':''}" onclick="fProv('tab','regole');return false">Tabella provvigioni (regole)</a></div>`;
+  if(q.tab==='regole' && !isSeg()) return `<div class="top"><div><h1>Provvigioni</h1><p class="sub">Regole di calcolo: si applica la regola più specifica (tipologia segnalatore + tipologia opportunità, poi una sola delle due, poi la regola base)</p></div>
+    <div class="actions"><button class="btn p" onclick="formRegola()">+ Nuova regola</button></div></div>${tabs}
+    <div class="card"><table><thead><tr><th>Tipologia segnalatore</th><th>Tipologia opportunità</th><th class="num">%</th><th class="num">Fisso</th><th>Matura</th><th>Descrizione</th><th></th></tr></thead><tbody>
+    ${[...S.regole].sort((a,b)=>((b.tipSegId?2:0)+(b.tipOppId?1:0))-((a.tipSegId?2:0)+(a.tipOppId?1:0))).map(r=>`<tr><td>${r.tipSegId?esc(tSeg(r.tipSegId)?.nome):'<span class="muted">qualsiasi</span>'}</td><td>${r.tipOppId?esc(tOpp(r.tipOppId)?.nome):'<span class="muted">qualsiasi</span>'}</td><td class="num">${r.perc}%</td><td class="num">${r.fisso?eur(r.fisso):'—'}</td><td>${esc(MATURAZIONE.find(m=>m.k===r.maturaSu)?.label)}</td><td>${esc(r.descr)}</td><td class="right" style="white-space:nowrap"><button class="btn s" onclick="formRegola('${r.id}')">Modifica</button> <button class="btn s danger" onclick="delRegola('${r.id}')">Elimina</button></td></tr>`).join('')}</tbody></table>
+    <p class="small muted" style="margin:12px 0 0">La base di calcolo è l'importo dell'evento che fa maturare la provvigione (importo contratto, singolo pagamento). L'importo fisso viene riconosciuto una sola volta per opportunità, sul primo evento maturante.</p></div>`;
+  const tot=rows.reduce((a,r)=>a+r.prov,0), liq=rows.filter(r=>r.liquidata).reduce((a,r)=>a+r.prov,0);
+  return `<div class="top"><div><h1>${isSeg()?'Le mie provvigioni':'Provvigioni'}</h1><p class="sub">Provvigioni maturate nel periodo, per segnalatore</p></div>
+    <div class="actions">${isSeg()?'':`<button class="btn" onclick="liquidaTutto(${q.seg?`'${q.seg}'`:'null'},'${q.anno}','${q.mese}')">Liquida tutto il periodo</button>`}</div></div>${tabs}
+  <div class="card"><div class="filters">
+    <div><label>Anno</label>${sel('anno',[['','Tutti'],...anni.map(a=>[a,a])],q.anno,'onchange="fProv(\'anno\',this.value)"')}</div>
+    <div><label>Mese</label>${sel('mese',[['','Tutto l\'anno'],...MESI.map((m,i)=>[String(i+1).padStart(2,'0'),m])],q.mese,'onchange="fProv(\'mese\',this.value)"')}</div>
+    ${isSeg()?'':`<div><label>Segnalatore</label>${sel('seg',[['','Tutti'],...S.segnalatori.map(s=>[s.id,s.nome])],q.seg,'onchange="fProv(\'seg\',this.value)"')}</div>`}
+  </div>
+  <div class="grid g3" style="margin-bottom:6px">
+    <div class="kpi"><div class="l">Maturato nel periodo</div><div class="v">${eur2(tot)}</div></div>
+    <div class="kpi"><div class="l">Liquidato</div><div class="v" style="color:var(--ok)">${eur2(liq)}</div></div>
+    <div class="kpi"><div class="l">Da liquidare</div><div class="v" style="color:var(--warn)">${eur2(tot-liq)}</div></div>
+  </div></div>
+  ${Object.keys(bySeg).length? Object.entries(bySeg).map(([sid,rs])=>`<div class="card"><h2>${isSeg()?'Dettaglio':`${av(sid)}<a href="#/segnalatori/${sid}">${esc(nomeSeg(sid))}</a>`} <span class="muted small" style="font-weight:400">· ${esc(tSeg(seg(sid)?.tipologiaId)?.nome||'')}</span></h2>${tabellaProvvigioni(rs,{hideSeg:true,liquida:true})}</div>`).join('') : '<div class="card"><div class="empty">Nessuna provvigione maturata nel periodo selezionato</div></div>'}`;
+}
+window.fProv=(k,v)=>{ window._fProv[k]=v; render(); };
+window.delRegola=id=>azione('Eliminare la regola?', ()=>api('DELETE','/api/regole/'+id));
+window.delTipologia=(coll,id)=>azione('Eliminare la tipologia?', ()=>api('DELETE',`/api/tipologie/${coll==='tipologieSegnalatore'?'segnalatore':'opportunita'}/${id}`));
+
+function vTipologie(){
+  return `<div class="top"><div><h1>Tipologie</h1><p class="sub">Anagrafiche di supporto: tipologie di segnalatore e di opportunità</p></div></div>
+  <div class="grid g2">
+    <div class="card"><div class="top" style="margin-bottom:8px"><h2>Tipologie di segnalatore</h2><button class="btn s" onclick="formTipologia('tipologieSegnalatore')">+ Aggiungi</button></div>
+      <table><tbody>${S.tipologieSegnalatore.map(t=>`<tr><td><b>${esc(t.nome)}</b><div class="small muted">${esc(t.descr)}</div><div class="small muted">codice: ${esc(t.id)} · ${S.segnalatori.filter(s=>s.tipologiaId===t.id).length} segnalatori</div></td><td class="right" style="white-space:nowrap"><button class="btn s" onclick="formTipologia('tipologieSegnalatore','${t.id}')">Modifica</button> <button class="btn s danger" onclick="delTipologia('tipologieSegnalatore','${t.id}')">Elimina</button></td></tr>`).join('')}</tbody></table></div>
+    <div class="card"><div class="top" style="margin-bottom:8px"><h2>Tipologie di opportunità</h2><button class="btn s" onclick="formTipologia('tipologieOpportunita')">+ Aggiungi</button></div>
+      <table><tbody>${S.tipologieOpportunita.map(t=>`<tr><td><b>${esc(t.nome)}</b><div class="small muted">${esc(t.descr)}</div><div class="small muted">codice: ${esc(t.id)} · ${S.opportunita.filter(o=>o.tipologiaId===t.id).length} opportunità</div></td><td class="right" style="white-space:nowrap"><button class="btn s" onclick="formTipologia('tipologieOpportunita','${t.id}')">Modifica</button> <button class="btn s danger" onclick="delTipologia('tipologieOpportunita','${t.id}')">Elimina</button></td></tr>`).join('')}</tbody></table></div>
+  </div>
+  <div class="card"><h2>Eventi di follow-up</h2><p class="small muted">Sequenza degli eventi che l'azienda registra su ogni segnalazione. Lo stato dell'opportunità è dato dall'evento più avanzato.</p>${EVENT_TYPES.map(e=>`<span class="badge ${e.cls}" style="margin:2px 6px 2px 0">${e.label}</span>`).join('')}</div>`;
+}
+
+/* ===================== VISTA SEGNALATORE ===================== */
+function vMe(){
+  const s=seg(me()); if(!s) return '<div class="empty">Seleziona un segnalatore</div>';
+  const os=S.opportunita.filter(o=>o.segnalatoreId===s.id).sort((a,b)=>a.dataSegnalazione<b.dataSegnalazione?1:-1);
+  const cs=S.clienti.filter(c=>c.segnalatoreId===s.id);
+  const prov=calcProvvigioni().filter(r=>r.segnalatoreId===s.id);
+  const mat=prov.reduce((a,r)=>a+r.prov,0), liq=prov.filter(r=>r.liquidata).reduce((a,r)=>a+r.prov,0);
+  const anno=TODAY.slice(0,4);
+  const perMese={}; prov.forEach(r=>{ if(r.data.startsWith(anno)){ const m=r.data.slice(0,7); perMese[m]=perMese[m]||{mat:0,liq:0}; perMese[m].mat+=r.prov; if(r.liquidata) perMese[m].liq+=r.prov; }});
+  return `<div class="top"><div><h1>${av(s.id,'lg')}Ciao, ${esc(s.nome)}</h1><p class="sub">${esc(tSeg(s.tipologiaId)?.nome||'')} · la tua situazione aggiornata al ${dt(TODAY)}</p></div>
+    <div class="actions"><button class="btn" onclick="formCliente()">+ Nuovo cliente</button><button class="btn p" onclick="formOpportunita()">+ Nuova segnalazione</button></div></div>
+  <div class="grid g4" style="margin-bottom:18px">
+    <div class="kpi"><div class="l">Clienti nel tuo portafoglio</div><div class="v">${cs.length}</div></div>
+    <div class="kpi"><div class="l">Segnalazioni aperte</div><div class="v">${os.filter(oppAperta).length}</div><div class="h">${os.filter(o=>oppStato(o).k==='pagamento').length} concluse · ${os.filter(o=>oppStato(o).k==='persa').length} perse</div></div>
+    <div class="kpi"><div class="l">Provvigioni maturate</div><div class="v">${eur(mat)}</div><div class="h">già liquidate ${eur(liq)}</div></div>
+    <div class="kpi"><div class="l">Ti spetta (da liquidare)</div><div class="v" style="color:var(--warn)">${eur2(mat-liq)}</div></div>
+  </div>
+  <div class="card"><h2>Le tue segnalazioni</h2>${tabellaOpportunita(os,{hideSeg:true})}</div>
+  <div class="grid g2">
+    <div class="card"><h2>Riepilogo ${anno} per mese</h2>${Object.keys(perMese).length?`<table><thead><tr><th>Mese</th><th class="num">Maturato</th><th class="num">Liquidato</th><th class="num">Da liquidare</th></tr></thead><tbody>${Object.entries(perMese).sort().map(([m,v])=>`<tr><td>${m.split('-').reverse().join('/')}</td><td class="num">${eur2(v.mat)}</td><td class="num">${eur2(v.liq)}</td><td class="num"><b>${eur2(v.mat-v.liq)}</b></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nessuna provvigione maturata quest\'anno</div>'}</div>
+    <div class="card"><h2>Come vengono calcolate</h2><p class="small">Le provvigioni maturano al verificarsi dell'evento previsto dalla regola applicata alla tua tipologia e al tipo di opportunità.</p>
+      ${S.regole.filter(r=>!r.tipSegId||r.tipSegId===s.tipologiaId).map(r=>`<div class="pill">${r.tipOppId?esc(tOpp(r.tipOppId)?.nome):'tutte le opportunità'}: <b>${r.perc}%</b>${r.fisso?` + ${eur(r.fisso)}`:''} ${MATURAZIONE.find(m=>m.k===r.maturaSu)?.label.toLowerCase()}</div>`).join('')}</div>
+  </div>
+  <div class="card"><h2>Dettaglio provvigioni</h2>${tabellaProvvigioni(prov,{hideSeg:true})}</div>`;
+}
+
+/* ===================== FORM ===================== */
+window.formSegnalatore=id=>{
+  const s=id?seg(id):{nome:'',tipologiaId:S.tipologieSegnalatore[0]?.id,email:'',telefono:'',piva:'',citta:'',attivo:true,dataInizio:TODAY,note:'',haAccesso:false};
+  openModal(id?'Modifica segnalatore':'Nuovo segnalatore',`<div class="form">
+    ${fld('Nome / ragione sociale *',inp('nome',s.nome,'text','required'))}
+    ${fld('Tipologia *',sel('tipologiaId',S.tipologieSegnalatore.map(t=>[t.id,t.nome]),s.tipologiaId))}
+    ${fld('Email',inp('email',s.email,'email'))}${fld('Telefono',inp('telefono',s.telefono))}
+    ${fld('P.IVA / Codice fiscale',inp('piva',s.piva))}${fld('Città',inp('citta',s.citta))}
+    ${fld('Attivo dal',inp('dataInizio',s.dataInizio,'date'))}${fld('Stato',sel('attivo',[['1','Attivo'],['0','Non attivo']],s.attivo?'1':'0'))}
+    ${fld('Note',`<textarea name="note">${esc(s.note)}</textarea>`,true)}
+    <div class="full" style="border-top:1px solid var(--line);padding-top:12px"><b>Accesso al portale</b> <span class="badge ${s.haAccesso?'b-ok':'b-muted'}" style="margin-left:6px">${s.haAccesso?'abilitato':'non abilitato'}</span>
+      <p class="small muted" style="margin:6px 0 10px">Il segnalatore accede con la sua email. ${s.haAccesso?'Inserisci una nuova password solo per cambiarla.':'Imposta una password per abilitare l\'accesso.'}</p></div>
+    ${fld(s.haAccesso?'Nuova password (facoltativa)':'Password di accesso',inp('password','','password','autocomplete="new-password" minlength="8"'))}
+    ${s.haAccesso?fld('&nbsp;',`<label class="chk" style="margin-top:8px"><input type="checkbox" name="revocaAccesso"> Revoca l'accesso al portale</label>`):''}</div>`,
+    d=>{ d.attivo=d.attivo==='1'; d.revocaAccesso=!!d.revocaAccesso; return id? api('PUT','/api/segnalatori/'+id,d) : api('POST','/api/segnalatori',d); });
+};
+
+window.formCliente=(id,segId)=>{
+  const c=id?cli(id):{ragioneSociale:'',piva:'',email:'',telefono:'',citta:'',segnalatoreId: isSeg()?me():(segId||S.segnalatori.find(s=>s.attivo)?.id),dataInserimento:TODAY,note:''};
+  let forzato=false;
+  openModal(id?'Modifica cliente':'Nuovo cliente',`<div class="form">
+    ${fld('Ragione sociale *',inp('ragioneSociale',c.ragioneSociale,'text','required'),true)}
+    ${fld('P.IVA',inp('piva',c.piva))}${fld('Città',inp('citta',c.citta))}
+    ${fld('Email',inp('email',c.email,'email'))}${fld('Telefono',inp('telefono',c.telefono))}
+    ${isSeg()?`<input type="hidden" name="segnalatoreId" value="${me()}">`:fld('Segnalatore (portafoglio) *',sel('segnalatoreId',S.segnalatori.map(s=>[s.id,s.nome+(s.attivo?'':' (non attivo)')]),c.segnalatoreId))}
+    ${fld('Data inserimento',inp('dataInserimento',c.dataInserimento,'date'))}
+    ${fld('Note',`<textarea name="note">${esc(c.note)}</textarea>`,true)}</div>
+    <p class="small muted" style="margin:10px 0 0">Prima del salvataggio viene verificato che il cliente non sia già presente (P.IVA, email o ragione sociale simile).</p>`,
+    async (d,form)=>{
+      d.forza=forzato;
+      try{ return await (id? api('PUT','/api/clienti/'+id,d) : api('POST','/api/clienti',d)); }
+      catch(err){
+        const dup=err.status===409 && err.data.duplicati; if(!dup) throw err;
+        const hard=dup.some(x=>x.hard);
+        setAlert(form,`<b>Attenzione: cliente forse già presente.</b><ul style="margin:6px 0 0 18px;padding:0">${dup.map(x=>`<li><b>${esc(x.ragioneSociale)}</b> (${esc(x.why)}) · nel portafoglio di ${esc(x.segnalatore)}, inserito il ${dt(x.dataInserimento)}</li>`).join('')}</ul>${hard?'<div style="margin-top:6px">Con la stessa P.IVA non è possibile inserire un nuovo cliente.</div>':'<div style="margin-top:6px">Se sei sicuro che sia un cliente diverso, premi di nuovo Salva per confermare.</div>'}`, hard?'bad':'warn');
+        if(!hard) forzato=true;
+        return false;
+      }
+    });
+};
+
+window.formOpportunita=(id,segId,cliId)=>{
+  const o=id?opp(id):{clienteId:cliId||'',segnalatoreId: isSeg()?me():(segId||''),tipologiaId:S.tipologieOpportunita[0]?.id,titolo:'',descr:'',valoreStimato:'',dataSegnalazione:TODAY};
+  if(cliId && !id) o.segnalatoreId = cli(cliId)?.segnalatoreId || o.segnalatoreId;
+  const clientiSel=()=> (isSeg()? S.clienti.filter(c=>c.segnalatoreId===me()) : [...S.clienti]).sort((a,b)=>a.ragioneSociale.localeCompare(b.ragioneSociale));
+  if(!clientiSel().length){ alert('Nessun cliente disponibile: inserisci prima un cliente.'); return; }
+  openModal(id?'Modifica opportunità':'Nuova opportunità / segnalazione',`<div class="form">
+    ${fld('Cliente *',sel('clienteId',clientiSel().map(c=>[c.id,c.ragioneSociale+' · '+c.citta]),o.clienteId||clientiSel()[0].id,'id="oppCli"'),true)}
+    ${isSeg()?`<input type="hidden" name="segnalatoreId" value="${me()}">`:fld('Segnalatore *',sel('segnalatoreId',S.segnalatori.map(s=>[s.id,s.nome]),o.segnalatoreId||cli(o.clienteId||clientiSel()[0].id)?.segnalatoreId,'id="oppSeg"'))}
+    ${fld('Tipologia opportunità *',sel('tipologiaId',S.tipologieOpportunita.map(t=>[t.id,t.nome]),o.tipologiaId))}
+    ${fld('Titolo *',inp('titolo',o.titolo,'text','required'),true)}
+    ${fld('Valore stimato (€)',inp('valoreStimato',o.valoreStimato,'number','min="0" step="100"'))}${fld('Data segnalazione',inp('dataSegnalazione',o.dataSegnalazione,'date'))}
+    ${fld('Descrizione',`<textarea name="descr">${esc(o.descr)}</textarea>`,true)}</div>
+    ${id?'':'<p class="small muted" style="margin:10px 0 0">Alla creazione viene registrato automaticamente l\'evento "Segnalazione".</p>'}`,
+    d=>{ d.valoreStimato=+d.valoreStimato||0; return id? api('PUT','/api/opportunita/'+id,d) : api('POST','/api/opportunita',d); },
+    {after:r=>{ if(!id && r?.id) location.hash='#/opportunita/'+r.id; }, onOpen:f=>{ const cs=f.querySelector('#oppCli'), sg=f.querySelector('#oppSeg'); if(cs&&sg) cs.onchange=()=>{ const c=cli(cs.value); if(c) sg.value=c.segnalatoreId; }; }});
+};
+
+window.formEvento=oppId=>{
+  const o=opp(oppId); const st=oppStato(o);
+  const next=EVENT_TYPES.find(e=>e.ord>st.ord && e.k!=='persa')?.k || 'pagamento';
+  const suggerito = next==='offerta'||next==='contratto' ? oppValore(o) : '';
+  openModal('Nuovo evento di follow-up · '+o.titolo,`<div class="form">
+    ${fld('Tipo evento *',sel('tipo',EVENT_TYPES.filter(e=>e.k!=='segnalazione').map(e=>[e.k,e.label]),next,'id="evTipo"'))}
+    ${fld('Data *',inp('data',TODAY,'date','required'))}
+    ${fld('Importo (€)',inp('importo',suggerito,'number','min="0" step="0.01" id="evImp"'))}
+    ${fld('Note',`<textarea name="note"></textarea>`,true)}</div>
+    <p class="small muted" id="evHint" style="margin:10px 0 0"></p>`,
+    d=>api('POST',`/api/opportunita/${oppId}/eventi`,d),
+    {onOpen:f=>{ const t=f.querySelector('#evTipo'), hint=f.querySelector('#evHint'), imp=f.querySelector('#evImp');
+      const upd=()=>{ const r=regolaPer(seg(o.segnalatoreId),o); const e=ET[t.value];
+        imp.closest('div').style.opacity = e.importo?1:.5;
+        hint.textContent = r && r.maturaSu===t.value ? `Questo evento fa maturare la provvigione: ${r.perc}%${r.fisso?' + '+eur(r.fisso):''} sull'importo indicato (regola: ${r.descr}).` : (e.importo?'Indica l\'importo (offerta, contratto o pagamento).':''); };
+      t.onchange=upd; upd(); }});
+};
+
+window.formRegola=id=>{
+  const r=id?S.regole.find(x=>x.id===id):{tipSegId:'',tipOppId:'',perc:5,fisso:0,maturaSu:'pagamento',descr:''};
+  openModal(id?'Modifica regola':'Nuova regola provvigionale',`<div class="form">
+    ${fld('Tipologia segnalatore',sel('tipSegId',[['','Qualsiasi'],...S.tipologieSegnalatore.map(t=>[t.id,t.nome])],r.tipSegId))}
+    ${fld('Tipologia opportunità',sel('tipOppId',[['','Qualsiasi'],...S.tipologieOpportunita.map(t=>[t.id,t.nome])],r.tipOppId))}
+    ${fld('Percentuale (%)',inp('perc',r.perc,'number','min="0" step="0.5"'))}${fld('Importo fisso (€)',inp('fisso',r.fisso,'number','min="0" step="1"'))}
+    ${fld('Matura',sel('maturaSu',MATURAZIONE.map(m=>[m.k,m.label]),r.maturaSu))}${fld('Descrizione',inp('descr',r.descr))}</div>`,
+    d=>{ d.perc=+d.perc||0; d.fisso=+d.fisso||0; return id? api('PUT','/api/regole/'+id,d) : api('POST','/api/regole',d); });
+};
+
+window.formTipologia=(coll,id)=>{
+  const t=id?S[coll].find(x=>x.id===id):{id:'',nome:'',descr:''};
+  openModal(id?'Modifica tipologia':'Nuova tipologia',`<div class="form">
+    ${fld('Nome *',inp('nome',t.nome,'text','required'),true)}
+    ${id?'':fld('Codice * (breve, senza spazi)',inp('id',t.id,'text','required pattern="[a-z0-9_-]+"'))}
+    ${fld('Descrizione',`<textarea name="descr">${esc(t.descr)}</textarea>`,true)}</div>`,
+    d=>{ const k=coll==='tipologieSegnalatore'?'segnalatore':'opportunita'; return id? api('PUT',`/api/tipologie/${k}/${id}`,d) : api('POST',`/api/tipologie/${k}`,d); });
+};
+
+/* ===================== IMPOSTAZIONI (utenti back office, password) ===================== */
+function vImpostazioni(){
+  api('GET','/api/utenti').then(us=>{ const el=document.getElementById('utentiTbl'); if(!el) return;
+    el.innerHTML=`<table><thead><tr><th>Nome</th><th>Email</th><th>Creato il</th><th>Stato</th><th></th></tr></thead><tbody>${us.map(u=>`<tr><td><b>${esc(u.nome)||'—'}</b>${u.id===S.user.id?' <span class="badge b-brand">tu</span>':''}</td><td>${esc(u.email)}</td><td class="small muted">${dt(u.createdAt.slice(0,10))}</td><td>${u.attivo?'<span class="badge b-ok">attivo</span>':'<span class="badge b-muted">disattivato</span>'}</td>
+      <td class="right" style="white-space:nowrap"><button class="btn s" onclick='formUtente(${JSON.stringify(u)})'>Modifica</button> ${u.id===S.user.id?'':`<button class="btn s ${u.attivo?'danger':''}" onclick="setUtenteAttivo('${u.id}',${u.attivo?'false':'true'})">${u.attivo?'Disattiva':'Riattiva'}</button>`}</td></tr>`).join('')}</tbody></table>`; }).catch(err=>{ const el=document.getElementById('utentiTbl'); if(el) el.innerHTML=`<div class="alert bad">${esc(err.message)}</div>`; });
+  const segAcc=S.segnalatori.filter(s=>s.haAccesso);
+  return `<div class="top"><div><h1>Impostazioni</h1><p class="sub">Utenti del back office e accessi al portale</p></div>
+    <div class="actions"><button class="btn" onclick="formPassword()">Cambia la mia password</button><button class="btn p" onclick="formUtente()">+ Nuovo utente back office</button></div></div>
+  <div class="card"><h2>Utenti back office</h2><p class="small muted">Accedono a tutte le funzioni: anagrafiche, eventi di follow-up, liquidazioni, regole.</p><div id="utentiTbl"><div class="empty">Caricamento…</div></div></div>
+  <div class="card"><h2>Segnalatori con accesso al portale</h2><p class="small muted">L'accesso si abilita dalla scheda del segnalatore (Segnalatori → Modifica) impostando una password. Il segnalatore accede con la propria email e vede solo i propri clienti, segnalazioni e provvigioni.</p>
+    ${segAcc.length?`<table><tbody>${segAcc.map(s=>`<tr class="clickable" onclick="location.hash='#/segnalatori/${s.id}'"><td>${who(s.id)}</td><td>${esc(s.email)}</td><td>${s.attivo?'<span class="badge b-ok">attivo</span>':'<span class="badge b-muted">non attivo (accesso sospeso)</span>'}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nessun segnalatore ha ancora un accesso</div>'}</div>
+  <div class="card"><div class="top" style="margin-bottom:8px"><h2>Dati di esempio</h2><button class="btn danger" onclick="formResetDemo()">Ripristina dati di esempio</button></div>
+    <p class="small muted" style="margin:0">Cancella tutti i dati (segnalatori, clienti, opportunità, eventi, regole, tipologie e accessi dei segnalatori) e ricarica lo scenario dimostrativo. Gli utenti del back office restano. Utile dopo una dimostrazione.</p></div>`;
+}
+window.formResetDemo=()=>{
+  openModal('Ripristina dati di esempio',`<div class="alert warn">Tutti i dati attuali verranno cancellati e sostituiti con lo scenario dimostrativo. L'operazione non si può annullare.</div>
+    <div class="form">${fld('Password per l\'accesso del segnalatore demo (Giorgio Parodi, broker)',inp('demoPassword','','password','minlength="8" autocomplete="new-password" placeholder="lascia vuoto per non creare l\'accesso"'),true)}
+    ${fld('Scrivi RIPRISTINA per confermare',inp('conferma','','text','required autocomplete="off"'),true)}</div>`,
+    async (d,form)=>{ if(d.conferma!=='RIPRISTINA'){ setAlert(form,'Conferma non corretta.','bad'); return false; } const r=await api('POST','/api/demo/reset',{demoPassword:d.demoPassword||undefined}); location.hash='#/dashboard'; return r; },
+    {submitLabel:'Ripristina', after:r=>{ if(r?.segnalatoreDemo) alert(`Dati ripristinati. Accesso segnalatore demo: ${r.segnalatoreDemo}`); }});
+};
+window.setUtenteAttivo=(id,attivo)=>azione(attivo?'Riattivare l\'utente?':'Disattivare l\'utente? Non potrà più accedere.', ()=>api('PUT','/api/utenti/'+id,{attivo}));
+window.formUtente=u=>{
+  openModal(u?'Modifica utente back office':'Nuovo utente back office',`<div class="form">
+    ${fld('Nome',inp('nome',u?.nome||''))}${fld('Email *',inp('email',u?.email||'','email','required autocomplete="off"'))}
+    ${fld(u?'Nuova password (lascia vuoto per non cambiarla)':'Password *',inp('password','','password',(u?'':'required ')+'minlength="8" autocomplete="new-password"'),true)}</div>`,
+    d=>{ if(!d.password) delete d.password; return u? api('PUT','/api/utenti/'+u.id,d) : api('POST','/api/utenti',d); });
+};
+window.formPassword=()=>{
+  openModal('Cambia password',`<div class="form">
+    ${fld('Password attuale *',inp('attuale','','password','required autocomplete="current-password"'),true)}
+    ${fld('Nuova password * (almeno 8 caratteri)',inp('nuova','','password','required minlength="8" autocomplete="new-password"'),true)}
+    ${fld('Ripeti la nuova password *',inp('conferma','','password','required autocomplete="new-password"'),true)}</div>`,
+    async (d,form)=>{ if(d.nuova!==d.conferma){ setAlert(form,'Le due password non coincidono.','bad'); return false; } await api('POST','/api/password',{attuale:d.attuale,nuova:d.nuova}); alert('Password aggiornata.'); });
+};
+
+boot();
+</script>
+</body>
+</html>

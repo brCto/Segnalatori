@@ -1,0 +1,11 @@
+node_modules
+data
+*.db
+*.db-wal
+*.db-shm
+.env
+.claude
+screenshots
+screenshots-segnalatori.zip
+tests
+README.md

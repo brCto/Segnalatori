@@ -1,0 +1,20 @@
+{
+  "name": "segnalatori",
+  "version": "1.0.0",
+  "description": "Gestione segnalatori, clienti segnalati, opportunità e provvigioni",
+  "private": true,
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "express": "^4.22.3"
+  }
+}

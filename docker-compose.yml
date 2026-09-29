@@ -1,0 +1,22 @@
+services:
+  segnalatori:
+    build: .
+    image: segnalatori:latest
+    restart: unless-stopped
+    ports:
+      - "8765:8765"
+    environment:
+      # Metti a 1 quando il reverse proxy davanti al container serve HTTPS
+      COOKIE_SECURE: "0"
+      TRUST_PROXY: "0"
+      SESSION_DAYS: "30"
+      # Per una demo: configurazione automatica al primo avvio (togli il commento e cambia le password)
+      # SETUP_ADMIN_EMAIL: "admin@example.it"
+      # SETUP_ADMIN_PASSWORD: "cambiami-subito"
+      # SEED_DEMO: "1"
+      # DEMO_SEGNALATORE_PASSWORD: "cambiami-anche-questa"
+    volumes:
+      - segnalatori-data:/app/data
+
+volumes:
+  segnalatori-data:
